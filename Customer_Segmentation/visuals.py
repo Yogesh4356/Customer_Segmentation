@@ -1,13 +1,6 @@
-###########################################
-# Suppress matplotlib user warnings
-# Necessary for newer version of matplotlib
-import warnings
-warnings.filterwarnings("ignore", category = UserWarning, module = "matplotlib")
-#
 # Display inline matplotlib plots with IPython
 from IPython import get_ipython
 get_ipython().run_line_magic('matplotlib', 'inline')
-###########################################
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -89,14 +82,10 @@ def biplot(good_data, reduced_data, pca):
     data and the projections of the original features.
     
     good_data: original data, before transformation.
-               Needs to be a pandas dataframe with valid column names
     reduced_data: the reduced data (the first two dimensions are plotted)
     pca: pca object that contains the components_ attribute
 
-    return: a matplotlib AxesSubplot object (for any additional customization)
-    
-    This procedure is inspired by the script:
-    https://github.com/teddyroland/python-biplot
+    return: a matplotlib AxesSubplot object 
     '''
 
     fig, ax = plt.subplots(figsize = (14,8))
@@ -121,43 +110,3 @@ def biplot(good_data, reduced_data, pca):
     ax.set_title("PC plane with original feature projections.", fontsize=16);
     return ax
     
-
-def channel_results(reduced_data, outliers, pca_samples):
-	'''
-	Visualizes the PCA-reduced cluster data in two dimensions using the full dataset
-	Data is labeled by "Channel" and cues added for student-selected sample data
-	'''
-
-	# Check that the dataset is loadable
-	try:
-	    full_data = pd.read_csv("customers.csv")
-	except:
-	    print("Dataset could not be loaded. Is the file missing?")       
-	    return False
-
-	# Create the Channel DataFrame
-	channel = pd.DataFrame(full_data['Channel'], columns = ['Channel'])
-	channel = channel.drop(channel.index[outliers]).reset_index(drop = True)
-	labeled = pd.concat([reduced_data, channel], axis = 1)
-	
-	# Generate the cluster plot
-	fig, ax = plt.subplots(figsize = (14,8))
-
-	# Color map
-	cmap = cm.get_cmap('gist_rainbow')
-
-	# Color the points based on assigned Channel
-	labels = ['Hotel/Restaurant/Cafe', 'Retailer']
-	grouped = labeled.groupby('Channel')
-	for i, channel in grouped:   
-	    channel.plot(ax = ax, kind = 'scatter', x = 'Dimension 1', y = 'Dimension 2', \
-	                 color = cmap((i-1)*1.0/2), label = labels[i-1], s=30);
-	    
-	# Plot transformed sample points   
-	for i, sample in enumerate(pca_samples):
-		ax.scatter(x = sample[0], y = sample[1], \
-	           s = 200, linewidth = 3, color = 'black', marker = 'o', facecolors = 'none');
-		ax.scatter(x = sample[0]+0.25, y = sample[1]+0.3, marker='$%d$'%(i), alpha = 1, s=125);
-
-	# Set plot title
-	ax.set_title("PCA-Reduced Data Labeled by 'Channel'\nTransformed Sample Data Circled");
